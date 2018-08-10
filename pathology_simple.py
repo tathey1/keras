@@ -12,6 +12,7 @@ from keras import backend as K
 import numpy as np
 from sklearn.model_selection import GridSearchCV
 from keras.wrappers.scikit_learn import KerasClassifier
+from keras.optimizers import Adadelta
 
 batch_size = 4
 num_classes = 4
@@ -49,7 +50,7 @@ y_test = keras.utils.to_categorical(y_test, num_classes)
 X = np.concatenate([x_train, x_test],axis=0)
 Y = np.concatenate([y_train, y_test], axis=0)
 
-def create_model():
+def create_model(dropout_rate=0.0, neurons=256, learn_rate=0.01, decay=0):
 	model = Sequential()
 	model.add(Conv2D(32,kernel_size=(3,3),
 		activation='relu',
@@ -67,25 +68,35 @@ def create_model():
 	model.add(Conv2D(64,kernel_size=(3,3)))
 	model.add(MaxPooling2D(pool_size=(2,2)))
 	model.add(Flatten())
-	model.add(Dense(256, activation='relu'))
-	model.add(Dropout(0.5))
+	model.add(Dense(neurons, activation='relu'))
+	model.add(Dropout(dropout_rate))
 	model.add(Dense(num_classes, activation='softmax'))
 	
+	optimizer = Adadelta(lr=learn_rate, decay=decay)
 	model.compile(loss=keras.losses.categorical_crossentropy,
-		optimizer='adam', metrics = ['accuracy'])
+		optimizer='Adadelta', metrics = ['accuracy'])
 	return model
 
-model = KerasClassifier(build_fn = create_model, verbose=0)
+model = KerasClassifier(build_fn = create_model, verbose=2)
 
 batch_size = [4]
 epochs = [1]
-param_grid = dict(batch_size=batch_size, epochs=epochs)
+learn_rate = [0.01]
+decay = [0.1]
+dropout_rate = [0.5]
+neurons = [256]
+param_grid = dict(batch_size=batch_size, epochs=epochs,
+		learn_rate=learn_rate, decay=decay,
+		dropout_rate=dropout_rate, neurons=neurons)
 grid = GridSearchCV(estimator=model, param_grid=param_grid)
 grid_result = grid.fit(X,Y)
-print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
+
+f = open('/workspace/results_keras/gridsearch.txt')
+
+f.write("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
 means = grid_result.cv_results_['mean_test_score']
 stds = grid_result.cv_results_['std_test_score']
 params = grid_result.cv_results_['params']
 for mean, stdev, param in zip(means, stds, params):
-    print("%f (%f) with: %r" % (mean, stdev, param))
-
+    f.write("%f (%f) with: %r" % (mean, stdev, param))
+f.close
