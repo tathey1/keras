@@ -9,10 +9,13 @@ from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten
 from keras.layers import Conv2D, MaxPooling2D
 from keras import backend as K
+import numpy as np
+from sklearn.model_selection import GridSearchCV
+from keras.wrappers.scikit_learn import KerasClassifier
 
-batch_size = 16
+batch_size = 4
 num_classes = 4
-epochs = 12
+epochs = 20
 
 # input image dimensions
 img_rows, img_cols = 1536, 2048
@@ -43,22 +46,46 @@ print(x_test.shape[0], 'test samples')
 y_train = keras.utils.to_categorical(y_train, num_classes)
 y_test = keras.utils.to_categorical(y_test, num_classes)
 
-model = Sequential()
-model.add(MaxPooling2D(pool_size=(2,2)))
-model.add(Flatten())
-model.add(Dense(num_classes, activation='softmax'))
+X = np.concatenate([x_train, x_test],axis=0)
+Y = np.concatenate([y_train, y_test], axis=0)
 
-print('Creating model...')
-model.compile(loss=keras.losses.categorical_crossentropy,
-              optimizer=keras.optimizers.Adadelta(),
-              metrics=['accuracy'])
-print('Training model...')
-model.fit(x_train, y_train,
-          batch_size=batch_size,
-          epochs=epochs,
-          verbose=2,
-          validation_data=(x_test, y_test))
-print('Evaluating model...')
-score = model.evaluate(x_test, y_test, verbose=1)
-print('Test loss:', score[0])
-print('Test accuracy:', score[1])
+def create_model():
+	model = Sequential()
+	model.add(Conv2D(32,kernel_size=(3,3),
+		activation='relu',
+		input_shape=input_shape))
+	model.add(MaxPooling2D(pool_size=(2,2)))
+	model.add(Conv2D(64,kernel_size=(3,3),
+		activation='relu'))
+	model.add(MaxPooling2D(pool_size=(2,2)))
+	model.add(Conv2D(128,kernel_size=(3,3),
+		activation='relu'))
+	model.add(MaxPooling2D(pool_size=(4,4)))
+	model.add(Conv2D(64,kernel_size=(3,3), strides=(2,2),
+		activation='relu'))
+	model.add(MaxPooling2D(pool_size=(4,4)))
+	model.add(Conv2D(64,kernel_size=(3,3)))
+	model.add(MaxPooling2D(pool_size=(2,2)))
+	model.add(Flatten())
+	model.add(Dense(256, activation='relu'))
+	model.add(Dropout(0.5))
+	model.add(Dense(num_classes, activation='softmax'))
+	
+	model.compile(loss=keras.losses.categorical_crossentropy,
+		optimizer='adam', metrics = ['accuracy'])
+	return model
+
+model = KerasClassifier(build_fn = create_model, verbose=0)
+
+batch_size = [4]
+epochs = [1]
+param_grid = dict(batch_size=batch_size, epochs=epochs)
+grid = GridSearchCV(estimator=model, param_grid=param_grid)
+grid_result = grid.fit(X,Y)
+print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
+means = grid_result.cv_results_['mean_test_score']
+stds = grid_result.cv_results_['std_test_score']
+params = grid_result.cv_results_['params']
+for mean, stdev, param in zip(means, stds, params):
+    print("%f (%f) with: %r" % (mean, stdev, param))
+

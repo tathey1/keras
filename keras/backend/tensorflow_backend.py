@@ -2525,6 +2525,9 @@ class Function(object):
         # (since the outputs of fetches are never returned).
         # This requires us to wrap fetches in `identity` ops.
         self.fetches = [tf.identity(x) for x in self.fetches]
+
+
+
         self.session_kwargs = session_kwargs
         if session_kwargs:
             raise ValueError('Some keys in session_kwargs are not '
