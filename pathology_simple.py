@@ -64,14 +64,15 @@ def create_model(dropout_rate=0.0, fc_neurons=256, num_layers=5, learn_rate=0.01
 	model.add(Dense(num_classes, activation='softmax'))
 	
 	optimizer = Adadelta(lr=learn_rate, decay=decay)
-	model.compile(loss=keras.losses.categorical_crossentropy,
+        parallel_model = multi_gpu_model(model,gpus=4)
+	parallel_model.compile(loss=keras.losses.categorical_crossentropy,
 		optimizer='Adadelta', metrics = ['accuracy'])
-	return model
+	return parallel_model
 
 
 batch_size = [2,4]
 epochs = [30,60]
-learn_rate = [0.1, 0.01, 0.001]
+learn_rate = [0.1, 0.001]
 decay = [0.0, 0.1]
 dropout_rate = [0.2, 0.5]
 fc_neurons = [128, 256]
@@ -80,24 +81,20 @@ num_layers = [5, 8]
 total_models = len(batch_size)*len(epochs)*len(learn_rate)*len(decay)*len(dropout_rate)*len(fc_neurons)*len(num_layers)
 counter = 0
 
-f = open('/workspace/results_keras/gridsearch.txt','w')
-f.write('[Loss, accuracy]')
-f.write('\n')
-
-combos = [(bs,e,lr,d,dr,fn,nl) for bs in batch_size for e in epochs for lr in learn_rate for d in decay for dr in dropout_rate for fn in fc_neurons for nl in num_layers]
-for (bs,e,lr,d,dr,fn,nl) in combos:
-  counter+=1
-  print('Iteration %i of %i' % (counter, total_models))
-  print('Batch size=%i, epochs=%i, learn_rate=%f, decay=%f, dropout_rate=%f, fc_neurons=%f, num_layers=%i' % (bs, e, lr, d, dr, fn, nl))
-  f.write('Batch size=%i, epochs=%i, learn_rate=%f, decay=%f, dropout_rate=%f, fc_neurons=%f, num_layers=%i' % (bs, e, lr, d, dr, fn, nl))
-  f.write('\n')
-  model = create_model(dr, fn, nl, lr, d)
-  model.fit(x=x_train, y=y_train, batch_size=bs, epochs=e, verbose=1)
-  txt = model.evaluate(x=x_test, y=y_test, batch_size=bs)
-  print(txt)
-  f.write(str(txt))
+with open('/workspace/results_keras/gridsearch.txt','w') as f:
+  f.write('[Loss, accuracy]')
   f.write('\n')
 
-
-
-f.close
+  combos = [(bs,e,lr,d,dr,fn,nl) for bs in batch_size for e in epochs for lr in learn_rate for d in decay for dr in dropout_rate for fn in fc_neurons for nl in num_layers]
+  for (bs,e,lr,d,dr,fn,nl) in combos:
+    counter+=1
+    print('Iteration %i of %i' % (counter, total_models))
+    print('Batch size=%i, epochs=%i, learn_rate=%f, decay=%f, dropout_rate=%f, fc_neurons=%f, num_layers=%i' % (bs, e, lr, d, dr, fn, nl))
+    f.write('Batch size=%i, epochs=%i, learn_rate=%f, decay=%f, dropout_rate=%f, fc_neurons=%f, num_layers=%i' % (bs, e, lr, d, dr, fn, nl))
+    f.write('\n')
+    model = create_model(dr, fn, nl, lr, d)
+    model.fit(x=x_train, y=y_train, batch_size=bs, epochs=e, verbose=1)
+    txt = model.evaluate(x=x_test, y=y_test, batch_size=bs)
+    print(txt)
+    f.write(str(txt))
+    f.write('\n')
