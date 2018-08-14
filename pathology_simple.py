@@ -69,13 +69,13 @@ def create_model(dropout_rate=0.0, fc_neurons=256, num_layers=5, learn_rate=0.01
 	return model
 
 
-batch_size = [4]#[2,4]
-epochs = [1]#[30,60]
-learn_rate = [0.01]#[0.1, 0.01, 0.001]
-decay = [0.0]#[0.0, 0.1]
-dropout_rate = [0.2]#[0.2, 0.5]
-fc_neurons = [256]#[128, 256]
-num_layers = [5]#[5, 8]
+batch_size = [2,4]
+epochs = [30,60]
+learn_rate = [0.1, 0.01, 0.001]
+decay = [0.0, 0.1]
+dropout_rate = [0.2, 0.5]
+fc_neurons = [128, 256]
+num_layers = [5, 8]
 
 total_models = len(batch_size)*len(epochs)*len(learn_rate)*len(decay)*len(dropout_rate)*len(fc_neurons)*len(num_layers)
 counter = 0
