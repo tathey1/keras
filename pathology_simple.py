@@ -48,7 +48,7 @@ print(x_test.shape[0], 'test samples')
 y_train = keras.utils.to_categorical(y_train, num_classes)
 y_test = keras.utils.to_categorical(y_test, num_classes)
 
-def create_model(dropout_rate, fc_neurons, num_layers, lr):
+def create_model(dropout_rate, fc_neurons, num_layers):
         model = Sequential()
         #model.add(BatchNormalization(axis=3,input_shape=input_shape))
         for i in range(num_layers):
@@ -67,11 +67,11 @@ def create_model(dropout_rate, fc_neurons, num_layers, lr):
         model.add(Dropout(dropout_rate))
         model.add(Dense(num_classes, activation='softmax'))
 
-        optimizer = SGD(lr=10,decay=0.0,momentum=0.9, nesterov=True)
+        optimizer = Adadelta()
 
-        parallel_model = multi_gpu_model(model,gpus=4)
-        parallel_model.compile(loss=keras.losses.categorical_crossentropy,
-                optimizer=optimizer, metrics = ['accuracy'])
+        parallel_model = multi_gpu_model(model,gpus=2)
+        parallel_model.compile(optimizer=optimizer,loss=keras.losses.categorical_crossentropy,
+                metrics = ['accuracy'])
         return parallel_model
 
 
@@ -81,13 +81,15 @@ epochs = [60]
 dropout_rate = [0.5]
 fc_neurons = [128]
 num_layers = [5]
-learn_rate = [0.01]
 
-total_models = len(batch_size)*len(epochs)*len(dropout_rate)*len(fc_neurons)*len(num_layers)*len(learn_rate)
+total_models = len(batch_size)*len(epochs)*len(dropout_rate)*len(fc_neurons)*len(num_layers)
 counter = 0
 
 model = create_model(dropout_rate=dropout_rate[0], fc_neurons=fc_neurons[0],
-                     num_layers=num_layers[0], lr=learn_rate[0])
+                     num_layers=num_layers[0])
+
+
+
 his = model.fit(x=x_train,y=y_train,
                 batch_size=batch_size[0], epochs=epochs[0], verbose=1,
                 validation_data=(x_test,y_test))
