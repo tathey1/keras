@@ -102,7 +102,7 @@ tb = callbacks.TensorBoard(args.res_path + '/tensorboard-logs',
                            histogram_freq=1)
 	
 #lr_decay = callbacks.LearningRateScheduler(schedule=lambda epoch: args.lr*(0.9**epoch))
-early_stop = callbacks.EarlyStopping(monitor='val_loss',min_delta=0,patience=5)
+early_stop = callbacks.EarlyStopping(monitor='val_loss',min_delta=0,patience=5,verbose=1)
 
 
 
@@ -120,7 +120,7 @@ print(y_test.shape)
 print('Fitting model')
         
 model.fit(x=x_train,y=y_train,batch_size=args.batch_size,
-		epochs=2,
+		epochs=args.epochs,
 		verbose=1,
 		validation_data=(x_test,y_test),
                 callbacks=[log, tb, early_stop])
