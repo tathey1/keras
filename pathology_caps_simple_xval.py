@@ -117,7 +117,9 @@ for counter in range(4):
 		dropout_rate=args.dropout, fc_neurons=args.num_neurons, lr=args.lr)
 
 	model.fit(x_t[counter], y_t[counter], batch_size=args.batch_size,
-		epochs=args.epochs, verbose=1, callbacks=[log, tb])
+		epochs=args.epochs, verbose=1,
+		validation_data=(x_v[counter], y_v[counter]), 
+		callbacks=[log, tb])
 	print('*****************Truth***********************')
 	print(y_v[counter])
 	print('******************Prediction**************')
