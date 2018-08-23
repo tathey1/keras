@@ -52,3 +52,11 @@ def load_data(num_train=360,path='/workspace/data/Part-A_Original/'):
 	y_test = np.concatenate(all_labels_shuf[_NUM_TRAIN:], axis=0)
 
 	return (x_train, y_train), (x_test, y_test), label_to_class
+
+def load_all_data():
+	(x_train, y_train), (x_test, y_test), label_to_class = load_data()
+	print('Label dictionary:')
+	print(label_to_class)
+	X = np.append(x_train, x_test,axis=0)
+	Y = np.append(y_train, y_test,axis=0)
+	return X, Y
