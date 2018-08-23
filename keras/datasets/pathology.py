@@ -8,7 +8,7 @@ import os
 from PIL import Image
 from random import shuffle
 
-def load_data(path='/workspace/data/Part-A_Original/'):
+def load_data(num_train=360,path='/workspace/data/Part-A_Original/'):
 	"""Loads the pathology dataset.
 	# Arguments
 	path: path to directory that has subdirectories corresponding to each clas
@@ -19,7 +19,7 @@ def load_data(path='/workspace/data/Part-A_Original/'):
 		y_* is of shape [num_images]
 	Dictionary of labels to class names
 	"""
-	_NUM_TRAIN = 360
+	_NUM_TRAIN = num_train
 	label_to_class = {}
 	subdirs = os.listdir(path)
 	label_counter=0
