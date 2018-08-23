@@ -26,8 +26,8 @@ parser.add_argument('--epochs',default=50, type=int)
 parser.add_argument('--lr',default=0.0001, type=float)
 parser.add_argument('--dropout',default=0.5, type=float)
 parser.add_argument('--num_neurons',default=2048, type=int)
-
 args = parser.parse_args()
+
 print(args)
 
 
@@ -64,9 +64,6 @@ y_test = keras.utils.to_categorical(y_test, num_classes)
 
 x = np.append(x_train,x_test,axis=0)
 y = np.append(y_train,y_test,axis=0)
-x_splits = np.array_split(x,4)
-y_splits = np.array_split(y,4)
-
 
 
 
@@ -98,50 +95,37 @@ def create_model(input_shape,dropout_rate, fc_neurons,lr):
 
 
 
-for i in range(4):
-	res_path = args.res_path + str(i)
-	log = callbacks.CSVLogger(res_path + '/log.csv')
-	tb = callbacks.TensorBoard(res_path + '/tensorboard-logs',
+log = callbacks.CSVLogger(args.res_path + '/log.csv')
+tb = callbacks.TensorBoard(args.res_path + '/tensorboard-logs',
                            batch_size=args.batch_size,
-                           write_graph=True,write_images=False,
+                           write_graph=False,write_images=False,
                            histogram_freq=1)
-	checkpoint = callbacks.ModelCheckpoint(res_path + '/weights-{epoch:02d}.h5',
-                                       monitor='val_capsnet_acc',
-                                       save_best_only=True, save_weights_only=True,
-                                       verbose=1)
-	lr_decay = callbacks.LearningRateScheduler(schedule=lambda epoch: args.lr*(0.9**epoch))
-	early_stop = callbacks.EarlyStopping(monitor='val_loss',min_delta=0,patience=5)
-
-
-
-	print('Fold ' + str(i))
-	print('Creating model')
-	model = create_model(input_shape=[1536,2048,3],
-		dropout_rate=args.dropout, fc_neurons=args.num_neurons, lr=args.lr)
 	
-	model.summary()
-
-
-	x_test = x_splits[i]
-	y_test = y_splits[i]
-	x_train = x_splits
-	del x_train[i]
-	y_train = y_splits
-	del y_train[i]
-	x_train = np.concatenate(x_train,axis=0)
-	y_train = np.concatenate(y_train,axis=0)
-	print(x_train.shape)
-	print(y_train.shape)
-
-	print('Fitting model')
-	his = model.fit(x=x_train,y=y_train,batch_size=args.batch_size,
-			epochs=args.epochs,
-			verbose=1,
-			validation_data=(x_test,y_test),
-                        callbacks=[log, tb, early_stop, checkpoint, lr_decay])
+#lr_decay = callbacks.LearningRateScheduler(schedule=lambda epoch: args.lr*(0.9**epoch))
+early_stop = callbacks.EarlyStopping(monitor='val_loss',min_delta=0,patience=5)
 
 
 
+print('Creating model')
+model = create_model(input_shape=[1536,2048,3],
+	dropout_rate=args.dropout, fc_neurons=args.num_neurons, lr=args.lr)
+	
+model.summary()
 
-	model.save(res_path + '/model.h5')
-	del model
+
+print(x_train.shape)
+print(y_train.shape)
+print(x_test.shape)
+print(y_test.shape)
+print('Fitting model')
+        
+model.fit(x=x_train,y=y_train,batch_size=args.batch_size,
+		epochs=2,
+		verbose=1,
+		validation_data=(x_test,y_test),
+                callbacks=[log, tb, early_stop])
+
+
+
+	
+model.save(args.res_path + '/model.h5')
