@@ -1,12 +1,12 @@
 import os
 from x_validate import k_fold_xval
-from my_models import simple
+from my_models import simple, max_pool
 
-batch_sizes = [30]
+batch_sizes = [30, 5]
 epochss = [1]
-lrs = [0.0001]
-dropouts = [0.2]
-fc_neuronss = [2048]
+lrs = [0.0001, 0.00005, 0.00001]
+dropouts = [0.2, 0.5]
+fc_neuronss = [2048, 1024, 512]
 
 num_filters = [64, 128, 256, 256, 256]
 conv_kernels = [4, 4, 6, 6, 8]
@@ -52,7 +52,7 @@ for (batch_size, epochs, lr, dropout, fc_neurons) in combos:
 	args_dict = {'dropout_rate':dropout, 'fc_neurons':fc_neurons, 
 		'lr':lr, 'num_filters':num_filters, 'conv_kernels':conv_kernels,
 		'strides':strides, 'input_shape':input_shape, 'num_classes':num_classes}
-	model = simple.simple(args_dict)
+	model = max_pool.max_pool(args_dict)
 
 	print(str(k) + ' fold cross validation')
 	args_dict = {'batch_size_train':batch_size, 'batch_size_val':10,
