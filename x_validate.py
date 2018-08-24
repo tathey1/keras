@@ -20,6 +20,8 @@ def k_fold_xval(k, out_path, model, args_dict):
 	
 	X,Y = pathology.load_all_data()
 	Y = keras.utils.to_categorical(Y,np.amax(Y)+1)
+	X = X.astype('float32')
+	X /= 255
 	print('X shape ' + str(X.shape))
 	print('Y shape ' + str(Y.shape))
 
@@ -66,7 +68,7 @@ def k_fold_xval(k, out_path, model, args_dict):
 			batch_size=batch_size_train,
 			write_graph=False, write_images=False)
 		early_stop = callbacks.EarlyStopping(monitor='val_loss',
-			min_delta=0, patience=5, verbose=1)
+			min_delta=0, patience=2, verbose=1)
 		print('Creating model...')
 		model_instance = model.create_model()
 		model_instance.summary()
@@ -90,11 +92,17 @@ def k_fold_xval(k, out_path, model, args_dict):
 
 		print('Using model for prediction...')
 		f = open(os.path.join(out_path,'predict.txt'),'a')
-		f.write(str(model_instance.predict(x_val, args_dict['batch_size_val'])))
+		predictions = str(model_instance.predict(x_val, args_dict['batch_size_val']))
+		predictions = predictions.replace('[', '')
+		predictions = predictions.replace(']', '')
+		f.write(predictions+'\n')
 		f.close()
 
 		f = open(os.path.join(out_path,'truth.txt'),'a')
-		f.write(str(y_val))
+		truth = str(y_val)
+		truth = truth.replace('[','')
+		truth = truth.replace(']','')
+		f.write(truth+'\n')
 		f.close()
 		K.clear_session()
 

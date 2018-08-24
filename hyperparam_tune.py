@@ -3,7 +3,7 @@ from x_validate import k_fold_xval
 from my_models import simple
 
 batch_sizes = [30]
-epochss = [10]
+epochss = [1]
 lrs = [0.0001]
 dropouts = [0.2]
 fc_neuronss = [2048]
