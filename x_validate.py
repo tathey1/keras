@@ -7,15 +7,13 @@ from keras import backend as K
 
 def k_fold_xval(k, out_path, model, args_dict):
 	try:
-		if type(args_dict['batch_size_train']) != int:
-			raise NameError('batch_size_train not an int')
-		if type(args_dict['batch_size_val']) != int:
-                        raise NameError('batch_size_val not an int')
+		if type(args_dict['batch_size']) != int:
+			raise NameError('batch_size not an int')
 		if type(args_dict['epochs']) != int:
 			raise NameError('epochs not an int')
 	except KeyError:
 		print('Missing argument[s]')
-		print('Arguments must include: batch_size_train, batch_size_val and epochs')
+		print('Arguments must include: batch_size and epochs')
 		return
 	
 	X,Y = pathology.load_all_data()
@@ -27,10 +25,10 @@ def k_fold_xval(k, out_path, model, args_dict):
 
 	num_examples = X.shape[0]
 	if num_examples % k != 0:
-		raise ValueError('Number of folds does not fit into number of examples: ' +  str(num_examples))
+		raise ValueError('Number of folds does not fit into number '+ \
+			'of examples: ' +  str(num_examples))
 	
-	batch_size_train = args_dict['batch_size_train']
-	batch_size_val = args_dict['batch_size_val']
+	batch_size = args_dict['batch_size']
 
 	num_val = num_examples/k
 	num_train = num_examples - num_val
@@ -55,27 +53,27 @@ def k_fold_xval(k, out_path, model, args_dict):
 		out = os.path.join(out_path, str(fold))
 		os.makedirs(out)
 		print('Results can be found in ' + out)
-		'''	
+			
 		x_val = X[num_val*fold:num_val*(fold+1)]
 		y_val = Y[num_val*fold:num_val*(fold+1)]
 		idxs = [i + num_val*(fold+1) for i in train_idx]
 		x_train = X.take(idxs,mode='wrap',axis=0)
 		y_train = Y.take(idxs, mode='wrap',axis=0)
-		'''
+		
 		log = callbacks.CSVLogger(out + '/log.csv')
 		tb = callbacks.TensorBoard(out + '/tensorboard-logs',
 			histogram_freq=1,
-			batch_size=batch_size_train,
+			batch_size=batch_size,
 			write_graph=False, write_images=False)
 		early_stop = callbacks.EarlyStopping(monitor='val_loss',
 			min_delta=0, patience=5, verbose=1)
 		print('Creating model...')
 		model_instance = model.create_model()
-		model_instance.summary()
+		#model_instance.summary()
 	
 		print('Training...')
 		model_instance.fit(x_train,y_train,
-			batch_size=batch_size_train,
+			batch_size=batch_size,
 			epochs=args_dict['epochs'],
 			verbose=1,
 			validation_data=(x_val, y_val),
@@ -83,7 +81,7 @@ def k_fold_xval(k, out_path, model, args_dict):
 
 		print('Evaluating model...')
 		f = open(results_path,'a')
-		txt = model_instance.evaluate(x_val, y_val, batch_size_val)
+		txt = model_instance.evaluate(x_val, y_val, batch_size)
 		print('Loss, accuracy]')
 		print(txt)
 		f.write(str(txt) + '\n')
@@ -92,7 +90,7 @@ def k_fold_xval(k, out_path, model, args_dict):
 
 		print('Using model for prediction...')
 		f = open(os.path.join(out_path,'predict.txt'),'a')
-		predictions = str(model_instance.predict(x_val, args_dict['batch_size_val']))
+		predictions = str(model_instance.predict(x_val, args_dict['batch_size']))
 		predictions = predictions.replace('[', '')
 		predictions = predictions.replace(']', '')
 		f.write(predictions+'\n')
