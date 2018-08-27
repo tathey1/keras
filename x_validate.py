@@ -4,6 +4,8 @@ from keras import callbacks
 import os
 import numpy as np
 from keras import backend as K
+from preprocess import mean_subtract
+
 
 def k_fold_xval(k, out_path, model, args_dict):
 	try:
@@ -20,6 +22,7 @@ def k_fold_xval(k, out_path, model, args_dict):
 	Y = keras.utils.to_categorical(Y,np.amax(Y)+1)
 	X = X.astype('float32')
 	X /= 255
+
 	print('X shape ' + str(X.shape))
 	print('Y shape ' + str(Y.shape))
 
@@ -41,24 +44,22 @@ def k_fold_xval(k, out_path, model, args_dict):
 
 	accuracy_cumulative = 0
 
-	x_val = X[:num_val]
-        y_val = Y[:num_val]
-        
-        x_train = X[num_val:]
-        y_train = Y[num_val:]
-
 	for fold in range(k):
 		print('Fold #' + str(fold))
 		
 		out = os.path.join(out_path, str(fold))
 		os.makedirs(out)
 		print('Results can be found in ' + out)
-			
+
 		x_val = X[num_val*fold:num_val*(fold+1)]
 		y_val = Y[num_val*fold:num_val*(fold+1)]
 		idxs = [i + num_val*(fold+1) for i in train_idx]
 		x_train = X.take(idxs,mode='wrap',axis=0)
 		y_train = Y.take(idxs, mode='wrap',axis=0)
+
+		
+		print('Preprocessing...')
+		#(x_train, x_val) = mean_subtract.preprocess(x_train, x_val)
 		
 		log = callbacks.CSVLogger(out + '/log.csv')
 		tb = callbacks.TensorBoard(out + '/tensorboard-logs',

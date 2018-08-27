@@ -88,37 +88,42 @@ class max_pool:
 			parallel_model.compile(optimizer=optimizer,
 				loss=keras.losses.categorical_crossentropy,
 				metrics=['accuracy'])
+			model.summary()
 			return parallel_model
 		else:
 			model.compile(optimizer=optimizer,
 				loss=keras.losses.categorical_crossentropy,
 				metrics=['accuracy'])
+			model.summary()
 			return model
 	
 
 
 	def _tile_images(self, images):
-		#num_images = args['num_images']
 		num_images = self.batch_size/self.gpus
-		im_list = ktf.split(images,num_images,0)
-		tile_1 = im_list
-		counter=0
-		for im in im_list:
-			temp = ktf.split(im,3,1)
-			tile_1[counter]=ktf.concat(temp,0)
-			counter+=1
-
-		tile_2=im_list
-		counter=0
-		for im in tile_1:
-			temp = ktf.split(im,4,2)
-			tile_2[counter] = ktf.concat(temp,0)
-			counter+=1
-		return ktf.concat(tile_2,0)
+		channels = ktf.split(images, images.shape[3], axis=3)
+		del images
+		counter = 0
+		for channel in channels:
+			
+			tiles = ktf.extract_image_patches(channel,
+					ksizes=[1,512,512,1],
+					strides=[1,256,256,1],
+					rates=[1,1,1,1],
+					padding="VALID")
+			num_tiles = tiles.shape[1]*tiles.shape[2]
+			tiles = ktf.reshape(tiles,[num_tiles*num_images,1,1,tiles.shape[3]])
+			tiles = ktf.reshape(tiles,[num_tiles*num_images,512,512,1])
+			channels[counter]=tiles
+			counter += 1
+		return ktf.concat(channels,3)
 
 	def _max_tile(self, images):
 		#num_images = args['num_images']
 		num_images = self.batch_size/self.gpus
+		print('*****************')
+		print(images)
+		print(num_images)
 		im_list = ktf.split(images, num_images,0)
 		maxed = im_list
 		counter=0

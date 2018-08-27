@@ -18,10 +18,8 @@ num_classes=4
 input_shape=[1536, 2048,3]
 folder = '/workspace/results_keras/simple/hyperparam/'
 
-
 if len(os.listdir(folder)) > 0:
 	raise ValueError('Folder is not empty')
-
 
 total_models = len(batch_sizes)*len(epochss)*len(lrs)*len(dropouts)* \
 	len(fc_neuronss)
