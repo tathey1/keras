@@ -66,8 +66,8 @@ class max_pool:
 		num_classes = self.num_classes
 
 		model = Sequential()
-		#model.add(Lambda(lambda image: ktf.image.resize_images(image,
-		#		(512,512)), input_shape=input_shape))
+		model.add(Lambda(lambda image: ktf.image.resize_images(image,
+				(1024,1024)), input_shape=input_shape))
 		model.add(Lambda(self._tile_images, input_shape=input_shape))
 		for l in range(len(num_filters)):
 			model.add(Conv2D(num_filters[l],
@@ -121,9 +121,6 @@ class max_pool:
 	def _max_tile(self, images):
 		#num_images = args['num_images']
 		num_images = self.batch_size/self.gpus
-		print('*****************')
-		print(images)
-		print(num_images)
 		im_list = ktf.split(images, num_images,0)
 		maxed = im_list
 		counter=0
