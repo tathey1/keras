@@ -6,7 +6,7 @@ batch_sizes = [20,4]
 epochss = [100]
 lrs = [0.00001, 0.000005, 0.000001]
 dropouts = [0.2, 0.5]
-fc_neuronss = [2048, 1024, 512]
+fc_neuronss = [512, 1024, 2048]
 
 num_filters = [64, 128, 256, 256, 256]
 conv_kernels = [4, 4, 6, 6, 8]
@@ -62,5 +62,6 @@ for (batch_size, epochs, lr, dropout, fc_neurons) in combos:
 	print('Cumulative accuracy:')
 	print(acc)
 	f.write(str(acc) + '\n')
-	
+	f.flush()
+
 f.close()

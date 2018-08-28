@@ -1,6 +1,7 @@
 import keras
 from keras.models import Sequential
-from keras.layers import Conv2D, Flatten, Dense, Dropout, Lambda, BatchNormalization, Activation
+from keras.layers import Conv2D, Flatten, Dense, Dropout, Lambda, \
+	BatchNormalization, Activation, MaxPooling2D
 from keras.optimizers import Adam
 from keras.backend import tf as ktf
 from keras.utils import multi_gpu_model
@@ -75,6 +76,7 @@ class max_pool:
 				strides=(strides[l],strides[l])))
 			model.add(BatchNormalization())
 			model.add(Activation('relu'))
+			#model.add(MaxPooling2D())
 		model.add(Lambda(self._max_tile))
 		model.add(Flatten())
 		model.add(Dense(fc_neurons, activation='relu'))
