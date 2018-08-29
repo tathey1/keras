@@ -9,41 +9,46 @@ from keras.backend import tf as ktf
 
 from keras.datasets import pathology
 
+from my_models import pretrained_inception_v2 
+from x_validate import k_fold_xval
+import os
+
 num_classes=4
 fc_neurons=256
-dropout=0.2
+dropout_rate=0.2
 lr=0.0001
+batch_size=20
 
+gpus=1
 input_shape=[1536, 2048, 3]
+ks=[10]
 
-folder='/workspace/results_keras/pretrain/inception_v2/'
+folder='/workspace/results_keras/pretrain/inception_v2_preprocess/'
 
-args = {'batch_size': 20, 'epochs':100}
-
-resizer = models.Sequential()
-resizer.add(layers.Lambda(lambda image: ktf.image.resize_images(image,
-		(299,299)), input_shape=input_shape))
-
-
-feature_extractor = InceptionResNetV2(include_top=False, input_shape=(299,299,3))
-for layer in feature_extractor.layers:
-	layer.trainable = False
-
-classifier = models.Sequential()
-classifier.add(layers.Flatten())
-classifier.add(layers.Dense(fc_neurons,activation='relu'))
-classifier.add(layers.Dropout(dropout))
-classifier.add(layers.Dense(num_classes,activation='softmax'))
+args_model = {'dropout_rate' : dropout_rate, 'fc_neurons': fc_neurons,
+	'lr':lr, 'gpus':gpus, 'num_classes':num_classes,
+	'batch_size': batch_size, 'input_shape':input_shape}
 
 
-complete_model = models.Sequential([resizer, feature_extractor, classifier])
 
-complete_model.summary()
+args_eval = {'batch_size':batch_size, 'epochs':100}
 
-optimizer = optimizers.Adam(lr=lr)
+summary_path = os.path.join(folder,'summary.txt')
+f = open(summary_path,'w')
 
-complete_model.compile(optimizer=optimizer,
-	loss=keras.losses.categorical_crossentropy,
-	metrics=['accuracy'])
+for k in ks:
+	fold_path = os.path.join(folder,str(k))
+	print(str(k) + ' folds')
+	f.write(str(k) + '\n')
+	os.makedirs(fold_path)
 
-#k_fold_xval(4, folder, classifier, 
+	model = pretrained_inception_v2.pretrained_inception_v2(args_model)
+	
+	acc = k_fold_xval(k, fold_path, model, args_eval)
+	print('Cumulative accuracy')
+	print(acc)
+
+	
+	f.write(str(acc) + '\n')
+	f.flush()
+f.close()
