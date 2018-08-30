@@ -59,7 +59,7 @@ def k_fold_xval(k, out_path, model, args_dict):
 
 		
 		print('Preprocessing...')
-		#(x_train, x_val) = mean_subtract.preprocess(x_train, x_val)
+		(x_train, x_val) = mean_subtract.preprocess(x_train, x_val)
 		
 		log = callbacks.CSVLogger(out + '/log.csv')
 		tb = callbacks.TensorBoard(out + '/tensorboard-logs',
