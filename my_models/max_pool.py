@@ -110,7 +110,7 @@ class max_pool:
 			
 			tiles = ktf.extract_image_patches(channel,
 					ksizes=[1,512,512,1],
-					strides=[1,256,256,1],
+					strides=[1,512,512,1],
 					rates=[1,1,1,1],
 					padding="VALID")
 			num_tiles = tiles.shape[1]*tiles.shape[2]
