@@ -1,5 +1,6 @@
 import os
 from x_validate import k_fold_xval
+import validate_augment
 from my_models import simple, max_pool
 
 batch_sizes = [4]
@@ -16,6 +17,7 @@ gpus=2
 k=10
 num_classes=4
 input_shape=[1536, 2048,3]
+
 folder = '/workspace/results_keras/simple/overfit_tile/'
 
 if len(os.listdir(folder)) > 0:
@@ -57,7 +59,7 @@ for (batch_size, epochs, lr, dropout, fc_neurons) in combos:
 	print(str(k) + ' fold cross validation')
 	args_dict = {'batch_size':batch_size,
 		'epochs':epochs}
-	acc = k_fold_xval(k, combo_path, model,args_dict)
+	acc = validate_augment.eval(combo_path, model,args_dict)
 
 	print('Cumulative accuracy:')
 	print(acc)

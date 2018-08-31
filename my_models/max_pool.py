@@ -130,3 +130,4 @@ class max_pool:
 			maxed[counter] = ktf.reduce_max(im,axis=0,keepdims=True)
 			counter+=1
 		return ktf.concat(maxed,0)
+
