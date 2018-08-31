@@ -76,7 +76,7 @@ class max_pool:
 				strides=(strides[l],strides[l])))
 			model.add(BatchNormalization())
 			model.add(Activation('relu'))
-			#model.add(MaxPooling2D())
+			model.add(MaxPooling2D(pool_size=(2,2)))
 		model.add(Lambda(self._max_tile))
 		model.add(Flatten())
 		model.add(Dense(fc_neurons, activation='relu'))

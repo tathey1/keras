@@ -2,21 +2,21 @@ import os
 from x_validate import k_fold_xval
 from my_models import simple, max_pool
 
-batch_sizes = [10]
+batch_sizes = [4]
 epochss = [100]
-lrs = [0.000005]
+lrs = [0.000001]
 dropouts = [0.5]
-fc_neuronss = [512]
+fc_neuronss = [256]
 
 num_filters = [64, 128, 256, 256, 256]
 conv_kernels = [4, 4, 6, 6, 8]
-strides = [2, 2, 2, 2, 2]
+strides = [1, 1, 1, 1, 1]
 
 gpus=2
 k=10
 num_classes=4
 input_shape=[1536, 2048,3]
-folder = '/workspace/results_keras/simple/xval_tile/'
+folder = '/workspace/results_keras/simple/overfit_tile/'
 
 if len(os.listdir(folder)) > 0:
 	raise ValueError('Folder is not empty')

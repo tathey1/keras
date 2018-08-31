@@ -66,8 +66,8 @@ def k_fold_xval(k, out_path, model, args_dict):
 			histogram_freq=1,
 			batch_size=batch_size,
 			write_graph=False, write_images=False)
-		early_stop = callbacks.EarlyStopping(monitor='val_loss',
-			min_delta=0, patience=2, verbose=1)
+		early_stop = callbacks.EarlyStopping(monitor='acc',
+			min_delta=0, patience=3, verbose=1)
 		print('Creating model...')
 		model_instance = model.create_model()
 		#model_instance.summary()
