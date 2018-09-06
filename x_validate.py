@@ -1,3 +1,12 @@
+'''
+Thomas Athey 9/6/18
+
+performs k fold cross validation. usually called by hyper_param_tune.py
+
+there will be an output directory for each fold, and a results.txt which shows the acc/loss for each fold
+each fold directory will include tensorboard events, and a log of acc/loss at each epoch
+'''
+
 import keras
 from keras.datasets import pathology
 from keras import callbacks
@@ -6,7 +15,13 @@ import numpy as np
 from keras import backend as K
 from preprocess import mean_subtract
 
-
+'''
+Args: k - int, number of folds (note that the training/validation partition sizes as determined by k should be divisible by the batch size
+the batch size should also be divisible by the number of gpus
+out_path-path for the output files
+model that implements fucntion create_model which returns a keras model
+args_dict - dictionary that specifies batch_size and epochs
+'''
 def k_fold_xval(k, out_path, model, args_dict):
 	try:
 		if type(args_dict['batch_size']) != int:
@@ -70,7 +85,7 @@ def k_fold_xval(k, out_path, model, args_dict):
 			min_delta=0, patience=3, verbose=1)
 		print('Creating model...')
 		model_instance = model.create_model()
-		#model_instance.summary()
+
 	
 		print('Training...')
 		model_instance.fit(x_train,y_train,

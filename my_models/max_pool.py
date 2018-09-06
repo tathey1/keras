@@ -1,3 +1,7 @@
+'''
+simple model that has max pooling and batch normalization
+'''
+
 import keras
 from keras.models import Sequential
 from keras.layers import Conv2D, Flatten, Dense, Dropout, Lambda, \

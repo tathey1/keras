@@ -1,8 +1,18 @@
+'''
+Thomas Athey 9/6/18
+
+I never quite finished this so i do not recommend using it but the goal was to implement pretrained models in keras
+instead, my pretrained models are implemented in tensorflow/models
+
+however, you can use this if you want, just call it in pretrained.py, or whatever your master script is
+'''
+
 import keras
 from keras.applications.inception_resnet_v2 import InceptionResNetV2
 from keras import models
 from keras import layers
 from keras import optimizers
+from keras.utils import multi_gpu_model
 
 from keras.backend import tf as ktf
 
@@ -50,13 +60,14 @@ class pretrained_inception_v2:
 
 		feature_extractor = InceptionResNetV2(include_top=False,
 			input_shape=(299,299,3))
+
 		for layer in feature_extractor.layers:
 			layer.trainable = False
 
 		classifier = models.Sequential()
 		classifier.add(layers.Flatten())
-		classifier.add(layers.Dense(self.fc_neurons,activation='relu'))
-		classifier.add(layers.Dropout(self.dropout_rate))
+		#classifier.add(layers.Dense(self.fc_neurons,activation='relu'))
+		#classifier.add(layers.Dropout(self.dropout_rate))
 		classifier.add(layers.Dense(self.num_classes,activation='softmax'))
 
 		optimizer = optimizers.Adam(lr=self.lr)

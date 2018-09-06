@@ -1,24 +1,40 @@
-import os
-from x_validate import k_fold_xval
-import validate_augment
-from my_models import simple, max_pool
+'''
+Thomas Athey 9/7/18
 
+The purpose of this script is to test different combinations of hyperparameters by performing k fold cross validation
+It creates an instance of a model object (that must implement the function create_model
+then it passes this object to either validate_augment.eval or x_validate.k_fold_xval in order to get overall accuracy
+
+the output file is called "summary.txt" and has the overall average accuracies for each combination of hyperparameters
+for each combination of hyperparameters it creates a folder in which the results of the k fold cross validation for
+those hyperparameters will be shown
+'''
+
+import os
+import x_validate
+import validate_augment
+from my_models import simple, max_pool, pretrained_inception_v2
+
+#hyperparameter lists
 batch_sizes = [4]
 epochss = [100]
 lrs = [0.000001]
 dropouts = [0.5]
 fc_neuronss = [256]
 
+#specs for the model (look at the model in my_models in order to see what these are used for
 num_filters = [64, 128, 256, 256, 256]
 conv_kernels = [4, 4, 6, 6, 8]
 strides = [1, 1, 1, 1, 1]
 
+#other parameters that need to be attended to
 gpus=2
 k=10
 num_classes=4
 input_shape=[1536, 2048,3]
 
-folder = '/workspace/results_keras/simple/overfit_tile/'
+#parent directory of all the output files
+folder = '/workspace/results_keras/simple/test/'
 
 if len(os.listdir(folder)) > 0:
 	raise ValueError('Folder is not empty')
@@ -59,7 +75,7 @@ for (batch_size, epochs, lr, dropout, fc_neurons) in combos:
 	print(str(k) + ' fold cross validation')
 	args_dict = {'batch_size':batch_size,
 		'epochs':epochs}
-	acc = validate_augment.eval(combo_path, model,args_dict)
+	acc = x_validate.k_fold_xval(k,combo_path, model,args_dict)
 
 	print('Cumulative accuracy:')
 	print(acc)

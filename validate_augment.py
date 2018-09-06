@@ -1,3 +1,15 @@
+'''
+Thomas Athey 9/7/18
+
+The function eval defined here simply evaluates a model against a single fold of the data
+This is done to leverage the data augmentation options in ImageDataGenerator
+
+It would be nice to be able to use ImageDataGenerator with multiple folds
+
+eval creates a tensorboard event file, a log.txt which has the losses/accuracies at each epoch
+and results.txt which has the final loss/accuracy of the training
+'''
+
 import keras
 from keras.datasets import pathology
 from keras.preprocessing.image import ImageDataGenerator
@@ -7,8 +19,13 @@ import numpy as np
 from keras import backend as K
 from preprocess import mean_subtract
 
-
+'''
+Args: out_path - path for where the output files should go
+model - object that has create model function that returns a keras model
+args_dict - arguments to specify batch size and epochs for training
+'''
 def eval(out_path, model, args_dict):
+
 	try:
 		if type(args_dict['batch_size']) != int:
 			raise NameError('batch_size not an int')
@@ -43,19 +60,22 @@ def eval(out_path, model, args_dict):
 	datagen = ImageDataGenerator(
 		featurewise_center=False,
 		featurewise_std_normalization=False,
-		rotation_range=0,
-		width_shift_range=0,
-		height_shift_range=0,
+		rotation_range=45,
+		width_shift_range=0.1,
+		height_shift_range=0.1,
 		horizontal_flip=True)
+	print('Preprocessing...')
 	datagen.fit(x_train)
+	
+	
 
 	log = callbacks.CSVLogger(out_path + '/log.csv')
 	tb = callbacks.TensorBoard(out_path + '/tensorboard-logs',
 		histogram_freq=1,
 		batch_size=batch_size,
 		write_graph=False, write_images=False)
-	early_stop = callbacks.EarlyStopping(monitor='acc',
-		min_delta=0, patience=3, verbose=1)
+	early_stop = callbacks.EarlyStopping(monitor='loss',
+		min_delta=0, patience=5, verbose=1)
 	print('Creating model...')
 	model_instance = model.create_model()
 	#model_instance.summary()
@@ -64,7 +84,7 @@ def eval(out_path, model, args_dict):
 	print('Training...')
 	model_instance.fit_generator(datagen.flow(x_train, y_train, batch_size=batch_size),
                 steps_per_epoch=len(x_train)/batch_size, epochs=epochs,
-		validation_data=(x_val,y_val), callbacks=[log,early_stop,tb])
+		validation_data=(x_val,y_val), callbacks=[log,tb]) #no early stop
 
 	print('Evaluating model...')
 	f = open(results_path,'a')

@@ -1,3 +1,8 @@
+'''
+simple model with a procession of convolution layers followed by fully connected layers
+'''
+
+
 import keras
 from keras.models import Sequential
 from keras.layers import Conv2D, Flatten, Dense, Dropout, Lambda
